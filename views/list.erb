@@ -14,13 +14,13 @@
 
   <ul>
     <% sort_todos(@todos) do |todo| %>
-      <% if todo[:completed] %>
+      <% if todo[:status] %>
         <li class="complete">
       <% else %>
         <li>
       <% end %>
         <form action="/lists/<%= @list_id %>/todos/<%= todo[:id] %>" method="post" class="check">
-          <input type="hidden" name="completed" value="<%= !todo[:completed] %>" />
+          <input type="hidden" name="completed" value="<%= !todo[:status] %>" />
           <button type="submit">Complete</button>
         </form>
         <h3><%= todo[:name] %></h3>

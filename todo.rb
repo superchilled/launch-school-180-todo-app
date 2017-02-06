@@ -2,7 +2,7 @@ require "sinatra"
 require "sinatra/content_for"
 require "tilt/erubis"
 require_relative "session_persistence"
-require_relative "database_persistence"
+require_relative "sequel_persistence"
 
 configure do
   enable :sessions
@@ -12,7 +12,7 @@ end
 
 configure(:development) do
   require "sinatra/reloader"
-  also_reload "database_persistence.rb"
+  also_reload "sequel_persistence.rb"
   also_reload "session_persistence.rb"
 end
 
@@ -33,7 +33,7 @@ helpers do
   end
 
   def sort_todos(todos, &block)
-    complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
+    complete_todos, incomplete_todos = todos.partition { |todo| todo[:status] }
 
     incomplete_todos.each(&block)
     complete_todos.each(&block)
@@ -68,7 +68,7 @@ end
 
 before do
   @session_storage = SessionPersistence.new(session)
-  @db_storage = DatabasePersistence.new(logger)
+  @db_storage = SequelPersistence.new(logger)
 end
 
 get "/" do
@@ -173,7 +173,7 @@ post "/lists/:list_id/todos/:id/destroy" do
   @list = load_list(@list_id)
 
   todo_id = params[:id].to_i
-  @db_storage.delete_todo(todo_id)
+  @db_storage.delete_todo(@list_id, todo_id)
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     status 204
   else
